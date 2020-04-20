@@ -1,11 +1,9 @@
 # nicenorm
-Better output from norminette
-
-## Intro
-The goal of this project is to make the output of norminette more readable.
+_Better output from norminette_
+The goal of this project is to make the output of norminette more readable and extract only the useful information.
 
 ![Example image](/example.jpg)
-(left is norminette, right is nicenorm)
+_(left is norminette, right is nicenorm)_
 
 ## Features
 * Color highlighting
@@ -14,6 +12,6 @@ The goal of this project is to make the output of norminette more readable.
 
 ## Todo
 Some things that will be added soon.
-* Ignore warnings
+* The ability to ignore warnings
 * Better argument parsing
 * Handle more norminette errors
