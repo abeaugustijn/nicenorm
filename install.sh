@@ -2,7 +2,7 @@
 
 echo Installing nicenorm
 
-if ! type "python4" &> /dev/null; then
+if ! type "python3" &> /dev/null; then
 	echo Install python3 first
 	exit 1
 fi
