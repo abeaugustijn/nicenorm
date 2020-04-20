@@ -3,49 +3,6 @@ import subprocess
 import sys
 import os
 
-def find_exec(program):
-    """
-    Find the norminette executable in the systems path.
-
-    Parameters
-    ----------
-    program: str
-        the name of the program or the path leading to the program
-
-    Returns
-    -------
-    str|None
-        The absolute path of the executable if a valid executable is found.
-    """
-
-    def is_executable(path):
-        """
-        Checks whether the given path leads to an executable file.
-
-        Parameters
-        ---------
-        path: str
-
-        Returns
-        -------
-        bool
-        """
-        return os.path.isfile(path) and os.access(path, os.X_OK)
-
-    fpath, _ = os.path.split(program)
-
-    # If fpath has a value then the given programname is an path and not just
-    # a programs name.
-    if fpath and is_executable(fpath):
-        return program
-    else:
-        # Search the entire `path` variable for a folder containing the 
-        for path in os.environ["PATH"].split(os.pathsep):
-            current = os.path.join(path, program)
-            if is_executable(current):
-                return current
-    return None
-
 class Opts:
     """
     Defines the options which can be given by the user.
@@ -62,18 +19,6 @@ class Opts:
 class Color:
     """
     The values representing the different colors to print certain strings in.
-
-    Attributes
-    ----------
-    error: str
-        The color used for printing errors, so this would not include any norm
-        warning.
-    warning: str
-        The color used to print norminette warnings.
-    norme: str
-        The color code used to write the "Norme" tag
-    reset: str
-        The color code used to reset all attributes.
     """
 
     input_error = "\033[1m\033[31m" # Red
@@ -82,6 +27,22 @@ class Color:
     norme = "\033[1m" #Bold
     reset = "\033[0m"
 
+def find_exec():
+    """
+    Find the norminette executable in the systems path.
+
+    Returns
+    -------
+    str|None
+        The absolute path of the executable if a valid executable is found.
+    """
+
+    # Search the entire `path` variable for a folder containing the executable
+    for path in os.environ["PATH"].split(os.pathsep):
+        current = os.path.join(path, "norminette")
+        if os.path.isfile(current) and os.access(current, os.X_OK):
+            return current
+    return None
 
 def parse_opts(argv):
     """
@@ -100,29 +61,29 @@ def parse_opts(argv):
         The options which result from the parsing.
     """
 
-    result = Opts()
+    opts = Opts()
     for i in range(len(argv)):
         if argv[i] == "-c" or argv[i] == "--no-color":
-            result.nocolor = True
+            opts.nocolor = True
             argv.pop(i)
         else:
             i += 1
-    return result
+    return opts
 
 def color_sub(opts, line, substring, color):
     """
-    Colors the substring of a given string
+    Applies a given color to the substring of a given string.
 
     Parameters
     ----------
     opts: class Opts
         The class containing the user specified options.
     line: str
-        The line to substitue from
+        The line to substitue from.
     substring: str
-        The substring to color
+        The substring to color.
     color: str
-        The color to give to the substring
+        The color to give to the substring.
 
     Returns
     -------
@@ -145,7 +106,6 @@ def color_sub(opts, line, substring, color):
     result += Color.reset
     result += line[start + substrlen:]
     return result
-
 
 def check_output(opts, output):
     """
@@ -193,7 +153,7 @@ def cut_empty(output):
     output: list
         The output of the norminette executable as an array of strings.
     """
-    #TODO: opts
+    #TODO opts
 
     def contains_norme(line):
         """
@@ -247,35 +207,35 @@ def format_nice(opts, output):
         output[i] = color_sub(opts, output[i], "Error", Color.error)
         output[i] = color_sub(opts, output[i], "Warning", Color.warning)
 
+# Globals
+e_no_exec = "No norminette executable found.\n\
+You can install the norminette client from this repo: \
+https://github.com/hivehelsinki/norminette-client"
+
 def main():
-    # generate our own list of arguments to pass to the norminette executable
     argv = sys.argv.copy()
+
     opts = parse_opts(argv)
 
     # find the executable path
-    executable = find_exec("norminette")
+    executable = find_exec()
     if not executable:
-        print("No norminette executable found.\n\
-You can install the norminette client from this repo: \
-https://github.com/hivehelsinki/norminette-client", file=sys.stderr)
+        print(e_no_exec, sys.stderr)
         exit(1)
 
-    # execute norminette and get the output
+    # execute norminette and get the output into an array of lines
     argv[0] = executable
     process_out = subprocess.Popen(argv,
             stdout = subprocess.PIPE,
             stderr = subprocess.STDOUT)
     output, _ = process_out.communicate()
     output = output.decode("utf-8")
-
-    # split the output into lines
     output = output.split("\n")
+
     if check_output(opts, output):
         exit(1)
 
-    # cut out all of the lines representing files without errors
     cut_empty(output)
-
     format_nice(opts, output)
 
     if len(output) == 0:
