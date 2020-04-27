@@ -25,4 +25,4 @@ Some things that will be added soon.
 * Better argument parsing
 * Handle more norminette errors
 
-Plese open an issue for any discrepancies you encounter or features you'd like to see in the future.
+Please open an issue for any discrepancies you encounter or features you'd like to see in the future.
